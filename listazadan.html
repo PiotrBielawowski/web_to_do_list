@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Lista Zadań</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+        }
+        h1 {
+            color: #333;
+        }
+        ul {
+            list-style-type: none;
+            padding: 0;
+        }
+        li {
+            background: #f9f9f9;
+            margin: 5px 0;
+            padding: 10px;
+            border: 1px solid #ddd;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        button {
+            margin-left: 10px;
+        }
+    </style>
+</head>
+<body>
+    <h1>Lista Zadań</h1>
+
+    <!-- Formularz dodawania zadania -->
+    <form method="POST" action="">
+        <input type="text" name="new_task" placeholder="Wpisz nowe zadanie" required>
+        <button type="submit" name="add_task">Dodaj zadanie</button>
+    </form>
+
+    <!-- Formularz usuwania zadania -->
+    <form method="POST" action="">
+        <input type="number" name="task_index" placeholder="Numer zadania do usunięcia" required>
+        <button type="submit" name="delete_task">Usuń zadanie</button>
+    </form>
+
+    <!-- Formularz edycji zadania -->
+    <form method="POST" action="">
+        <input type="number" name="edit_index" placeholder="Numer zadania do edycji" required>
+        <input type="text" name="edit_text" placeholder="Nowa treść zadania" required>
+        <button type="submit" name="edit_task">Edytuj zadanie</button>
+    </form>
+
+    <!-- Wyświetlanie listy zadań -->
+    <ul>
+        <?php
+        // Otwórz plik z zadaniami (lub stwórz, jeśli nie istnieje)
+        $file = 'tasks.txt';
+        if (!file_exists($file)) {
+            file_put_contents($file, '');
+        }
+
+        // Odczytaj zadania z pliku
+        $tasks = file($file, FILE_IGNORE_NEW_LINES | FILE_SKIP_EMPTY_LINES);
+
+        // Dodawanie nowego zadania
+        if (isset($_POST['add_task'])) {
+            $new_task = trim($_POST['new_task']);
+            if (!empty($new_task)) {
+                file_put_contents($file, $new_task . PHP_EOL, FILE_APPEND);
+                header("Location: index.php"); // Przeładuj stronę
+                exit();
+            }
+        }
+
+        // Usuwanie zadania
+        if (isset($_POST['delete_task'])) {
+            $task_index = (int)$_POST['task_index'] - 1;
+            if ($task_index >= 0 && $task_index < count($tasks)) {
+                unset($tasks[$task_index]);
+                file_put_contents($file, implode(PHP_EOL, $tasks) . PHP_EOL);
+                header("Location: index.php"); // Przeładuj stronę
+                exit();
+            }
+        }
+
+        // Edycja zadania
+        if (isset($_POST['edit_task'])) {
+            $edit_index = (int)$_POST['edit_index'] - 1;
+            $edit_text = trim($_POST['edit_text']);
+            if ($edit_index >= 0 && $edit_index < count($tasks) && !empty($edit_text)) {
+                $tasks[$edit_index] = $edit_text;
+                file_put_contents($file, implode(PHP_EOL, $tasks) . PHP_EOL);
+                header("Location: index.php"); // Przeładuj stronę
+                exit();
+            }
+        }
+
+        // Wyświetlanie zadań
+        if (!empty($tasks)) {
+            foreach ($tasks as $index => $task) {
+                echo "<li>" . ($index + 1) . ". $task</li>";
+            }
+        } else {
+            echo "<li>Brak zadań.</li>";
+        }
+        ?>
+    </ul>
+</body>
+</html>
